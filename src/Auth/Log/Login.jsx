@@ -1,12 +1,13 @@
-import { Card, CardBody, Input, Button, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel} from "@material-tailwind/react";
+import { Card, CardBody, Input, Button, Typography, Tabs, TabsHeader, TabsBody, Tab, TabPanel } from "@material-tailwind/react";
 import Swal from "sweetalert2";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import useAuthContext from "../../Context/useAuthContext";
 
 const Login = () => {
     const [type, setType] = useState("login");
-    const {loginUser , createUser} = useAuthContext();
+    const { loginUser, createUser } = useAuthContext();
+    const navigate = useNavigate();
 
     const logIn = (e) => {
         e.preventDefault();
@@ -16,56 +17,77 @@ const Login = () => {
         console.log(email, password);
 
         loginUser(email, password)
-        .then(() => {
-            Swal.fire({
-                text: 'Sign up successfully!',
-                icon: 'success',
-                confirmButtonText: 'Cool'
-            })
-                // ...
-                .then(() => {
-                  return  <Navigate to='/home' />
+            .then(() => {
+                Swal.fire({
+                    text: 'Logged in successfully!',
+                    icon: 'success',
+                    confirmButtonText: 'Cool'
+                }).then(() => {
+                    navigate('/chat');
                 })
-        })
-
-        .catch(() => {
-            Swal.fire({
-                title: 'Invalid email or password!',
-                icon: 'error',
-                confirmButtonText: 'Try again'
             })
-            // ..
-        });
+            .catch(() => {
+                Swal.fire({
+                    title: 'Invalid email or password!',
+                    icon: 'error',
+                    confirmButtonText: 'Try again'
+                });
+            });
+
+        e.target.reset();
     };
 
-    const singUp = (e) => {
+    const signUp = (e) => {
         e.preventDefault();
         const userName = e.target.userName.value;
         const email = e.target.email.value;
-        const password = e.target.password.value
-        const file = e.target.fileUpload.files[0];
-        console.log(userName, email, password, file);
+        const password = e.target.password.value;
+        console.log(userName, email, password);
+        const user = {
+            userName,
+            email,
+            password,
+        };
 
-        createUser(email, password)
+        // post email or password on data base 
+        fetch('http://localhost:5000/api/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(user)
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+            });
+
+        if (password.length < 6 || password.length > 32) {
+            Swal.fire({
+                title: 'Password has to be between 6 and 32 characters!',
+                icon: 'error',
+                confirmButtonText: 'Try again'
+            });
+        } else {
+            createUser(email, password)
                 .then(() => {
                     Swal.fire({
                         text: 'Sign up successfully!',
                         icon: 'success',
                         confirmButtonText: 'Cool'
-                    })
+                    }).then(() => {
+                        navigate('/chat');
+                    });
                 })
                 .catch(() => {
                     Swal.fire({
-                        title: ' try agin!',
-                        text: '',
+                        title: 'Try again!',
                         icon: 'error',
                         confirmButtonText: 'Try again'
-                    })
+                    });
                 });
-
-    }
-
-
+        }
+    };
 
     return (
         <div className="flex items-center">
@@ -85,7 +107,6 @@ const Login = () => {
                         Connect. Share. Enjoy. <span className="font-playAR">Chat-On</span> - Your new favorite chat platform.
                     </p>
                 </div>
-
             </div>
             <div className="w-1/2 px-[15%]">
                 <h1 className="text-3xl font-semibold text-center text-blue-600 mb-4 font-playAR">Chat-On</h1>
@@ -122,20 +143,25 @@ const Login = () => {
                                         <div className="w-full">
                                             <Input name="password" type="text" label="Password" />
                                         </div>
-
                                         <Button type="submit" className="bg-blue-600" size="lg">Login Now</Button>
                                         <Typography
                                             variant="small"
                                             color="gray"
                                             className="flex items-center justify-center gap-2 font-medium opacity-60"
                                         >
-
-                                            secure and encrypted
+                                           Forget Your Password?
+                                        </Typography>
+                                        <Typography
+                                            variant="small"
+                                            color="gray"
+                                            className="flex items-center justify-center gap-2 font-medium opacity-60"
+                                        >
+                                            Secure and encrypted
                                         </Typography>
                                     </form>
                                 </TabPanel>
                                 <TabPanel value="signUp" className="p-0">
-                                    <form onSubmit={singUp} className="mt-12 flex flex-col gap-4">
+                                    <form onSubmit={signUp} className="mt-12 flex flex-col gap-4">
                                         <div className="w-full">
                                             <Input name="userName" label="User Name" />
                                         </div>
@@ -145,55 +171,13 @@ const Login = () => {
                                         <div className="w-full">
                                             <Input name="password" type="text" label="Password" />
                                         </div>
-                                        <label htmlFor="">Upload Profile Pic</label>
-                                        <div className="relative my-6">
-                                            <input
-                                                id="id-dropzone02"
-                                                name="fileUpload"
-                                                type="file"
-                                                className="peer hidden"
-                                                accept=".gif,.jpg,.png,.jpeg"
-                                                multiple
-                                            />
-                                            <label
-                                                htmlFor="id-dropzone02"
-                                                className="flex cursor-pointer flex-col items-center gap-6 rounded border border-dashed border-slate-300 px-6 py-10 text-center"
-                                            >
-                                                <span className="inline-flex h-12 items-center justify-center self-center rounded bg-slate-100/70 px-3 text-slate-400">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        aria-label="File input icon"
-                                                        role="graphics-symbol"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        strokeWidth="1.5"
-                                                        stroke="currentColor"
-                                                        className="h-6 w-6"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                                                        />
-                                                    </svg>
-                                                </span>
-                                                <p className="flex flex-col items-center justify-center gap-1 text-sm">
-                                                    <span className="text-emerald-500 hover:text-emerald-500">
-                                                        Upload media
-                                                        <span className="text-slate-500"> or drag and drop </span>
-                                                    </span>
-                                                    <span className="text-slate-600"> PNG, JPG or GIF up to 10MB </span>
-                                                </p>
-                                            </label>
-                                        </div>
                                         <Button type="submit" className="bg-blue-600" size="lg">Sign Up Now</Button>
                                         <Typography
                                             variant="small"
                                             color="gray"
                                             className="flex items-center justify-center gap-2 font-medium opacity-60"
                                         >
-
-                                            secure and encrypted
+                                            Secure and encrypted
                                         </Typography>
                                     </form>
                                 </TabPanel>
@@ -205,4 +189,5 @@ const Login = () => {
         </div>
     );
 }
+
 export default Login;

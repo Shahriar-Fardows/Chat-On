@@ -3,8 +3,7 @@
 const Home = () => {
     return (
         <div>
-            <div>
-            </div>
+            <h1>that is chat page </h1>
         </div>
     );
 };
